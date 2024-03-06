@@ -22,10 +22,20 @@ repositories {
 }
 
 dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	// redis client
+	implementation 'org.redisson:redisson:3.17.1'
+//	 embedded redis
+	implementation('it.ozimov:embedded-redis:0.7.3') {
+		exclude group: "org.slf4j", module: "slf4j-simple" //불필요한 의존성이 일부 포함
+	}
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'com.h2database:h2'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'io.projectreactor:reactor-test'
 }
 
 tasks.named('test') {
