@@ -1,6 +1,4 @@
 # AccountRefactoring
-
-# AccountRefactoring
 외부  시스탬에서 거래를 요청하는 경우 거래를 받아서 계좌에서 잔액을 거래 금액 만큼 줄이거나 늘리는 거래 관련 기능을 제공하는 System 
 
 - 개발환경 
