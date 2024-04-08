@@ -10,10 +10,7 @@ public interface AccountService {
 
     void useBalance(Account account, Long amount);
 
-    AccountDto createAccount(Long id, Long initialBalance);
     void validation(AccountUser accountUser, Account account);
-    void cancelBalance(Account account, Long amount);
 
-    AccountUser getAccountUser(Long id);
-    AccountDto deleteAccount(Long id, String accountNumber);
+    void cancelBalance(Account account, Long amount);
 }

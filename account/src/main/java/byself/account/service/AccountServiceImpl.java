@@ -14,6 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static byself.account.type.AccountStatus.*;
 import static byself.account.type.ErrorCode.*;
@@ -27,15 +30,6 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private AccountUserRepository accountUserRepository;
 
-    @Override
-    public Account getAccount(Long id) {
-        if (id < 0) {
-            throw new IllegalStateException(String.format("잘못된 값입니다."));
-        }
-        return accountRepository.findById(id).get();
-    }
-
-    @Override
     public AccountDto createAccount(Long id, Long initialBalance) {
         AccountUser accountUser = getAccountUser(id);
 
@@ -64,16 +58,23 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
-    @Override
     public AccountDto deleteAccount(Long id, String accountNumber) {
         AccountUser accountUser = getAccountUser(id);
 
         Account account = accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new AccountException(ACCOUNT_NOT_FOUND));
 
+        //계정 소유주 일치 하지 않는 경우
+        if (!accountUser.equals(account.getAccountUser())){
+            throw new AccountException(ID_NOT_MATCH);
+        }
+
         validation(accountUser, account);
+
         account.setAccountStatus(UNREGISTERED);
         account.setUnregisteredAt(LocalDateTime.now());
+
+        accountRepository.save(account);//Test 용도
 
         return AccountDto.fromEntity(account);
     }
@@ -90,7 +91,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void validation(AccountUser accountUser, Account account) {
-        if (!accountUser.getId().equals(account.getId())) {
+        if (!Objects.equals(accountUser.getId(), account.getAccountUser().getId())){
             throw new AccountException(ID_NOT_MATCH);
         }
 
@@ -114,8 +115,25 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountUser getAccountUser(Long id) {
+    public Account getAccount(Long id) {
+        if (id < 0) {
+            throw new IllegalStateException(String.format("잘못된 값입니다."));
+        }
+        return accountRepository.findById(id).get();
+    }
+
+    private AccountUser getAccountUser(Long id) {
         return accountUserRepository.findById(id)
                 .orElseThrow(() -> new AccountException(USER_NOT_FOUND));
+    }
+
+    public List<AccountDto> getAccountsByUserId(Long id) {
+        AccountUser accountUser = getAccountUser(id);
+
+        List<Account> accounts = accountRepository.findByAccountUser(accountUser);
+
+        return accounts.stream().
+                map(AccountDto::fromEntity)
+                .collect(Collectors.toList());
     }
 }

@@ -4,12 +4,12 @@ package byself.account.service;
 import byself.account.domain.Account;
 import byself.account.domain.AccountUser;
 import byself.account.dto.AccountDto;
+import byself.account.exception.AccountException;
 import byself.account.repository.AccountRepository;
 import byself.account.repository.AccountUserRepository;
 import byself.account.type.AccountStatus;
-import org.aspectj.lang.annotation.Before;
+import byself.account.type.ErrorCode;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,13 +17,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -131,5 +132,234 @@ class AccountServiceImplTest {
         verify(accountRepository, times(1)).save(captor.capture());
         assertEquals(1L, accountDto.getId());
         assertEquals("100000000", captor.getValue().getAccountNumber());
+    }
+
+    @Test
+    @DisplayName("계좌 생성 실패")
+    void createAccount_Fail() {
+        AccountUser user = new AccountUser().builder()
+                .name("Hwang")
+                .build();
+        user.setId(2L);
+//        given(accountRepository.findById(anyLong()))
+//                .willReturn(Optional.empty());
+
+        AccountException accountException = assertThrows(AccountException.class,
+                () -> accountService.createAccount(1L, 10000L));
+
+        assertEquals(ErrorCode.USER_NOT_FOUND, accountException.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("생성 계좌는 총 2개")
+    void creatAccount_max2() {
+        AccountUser accountUser = AccountUser.builder()
+                .name("Hwang")
+                .build();
+        accountUser.setId(1L);
+        accountUser.setCreatedAt(LocalDateTime.now());
+
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.of(accountUser));
+
+        given(accountRepository.countByAccountUser(any()))
+                .willReturn(3);
+
+        AccountException accountException = assertThrows(AccountException.class,
+                () -> accountService.createAccount(1L, 10000L));
+        assertEquals(ErrorCode.MAX_ACCOUNT_PER_USER, accountException.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("계좌 삭제")
+    void deleteAccount() {
+        AccountUser user = AccountUser.builder()
+                .name("Park")
+                .build();
+        user.setId(1L);
+
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.of(user));
+
+        given(accountRepository.findByAccountNumber(anyString()))
+                .willReturn(Optional.of(Account.builder()
+                        .accountUser(user)
+                        .accountNumber("123456789")
+                        .balance(0L)
+                        .build()));
+
+        ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
+
+        //when
+        AccountDto accountDto = accountService.deleteAccount(1L, "123456789");
+
+        //then
+        verify(accountRepository, times(1)).save(captor.capture());
+        assertEquals(1L, accountDto.getId());
+        assertEquals("123456789", captor.getValue().getAccountNumber());
+        assertEquals(AccountStatus.UNREGISTERED, captor.getValue().getAccountStatus());
+    }
+
+    @Test
+    @DisplayName("해당 유저 X -> 계좌 해지 실패")
+    void deleteAccount_Fail() {
+
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.empty());
+
+        AccountException accountException = assertThrows(AccountException.class,
+                () -> accountService.deleteAccount(1L, "123456789"));
+
+        assertEquals(ErrorCode.USER_NOT_FOUND, accountException.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("해당 userX")
+    void deleteAccount_UserNotFound() {
+        AccountUser user = AccountUser.builder()
+                .name("Hwang")
+                .build();
+        user.setId(1L);
+
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.of(user));
+
+        given(accountRepository.findByAccountNumber(anyString()))
+                .willReturn(Optional.empty());
+
+        AccountException accountException = assertThrows(AccountException.class,
+                () -> accountService.deleteAccount(1L, "123456789"));
+
+        assertEquals(ErrorCode.ACCOUNT_NOT_FOUND, accountException.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("계좌 소유주 다름")
+    void deleteAccount_userNotMatch() {
+        AccountUser accountUser1 = AccountUser.builder()
+                .name("Hwang")
+                .build();
+        accountUser1.setId(1L);
+
+        AccountUser accountUser2 = AccountUser.builder()
+                .name("Park")
+                .build();
+        accountUser2.setId(2L);
+
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.of(accountUser1));
+
+        given(accountRepository.findByAccountNumber(anyString()))
+                .willReturn(Optional.of(Account.builder()
+                        .accountUser(accountUser2)
+                        .accountNumber("123456789")
+                        .balance(0L)
+                        .build()));
+
+        AccountException accountException = assertThrows(AccountException.class
+                , () -> accountService.deleteAccount(1L, "987654321"));
+
+        assertEquals(ErrorCode.ID_NOT_MATCH, accountException.getErrorCode());
+    }
+
+    @Test
+    void balance_NotEmpty() {
+        AccountUser accountUser1 = AccountUser.builder()
+                .name("Hwang")
+                .build();
+        accountUser1.setId(1L);
+
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.of(accountUser1));
+
+        given(accountRepository.findByAccountNumber(anyString()))
+                .willReturn(Optional.of(Account.builder()
+                        .accountNumber("123456789")
+                        .accountUser(accountUser1)
+                        .balance(1000L)
+                        .build()));
+
+        AccountException accountException = assertThrows(AccountException.class
+                , () -> accountService.deleteAccount(1L, "1234566789"));
+
+        assertEquals(ErrorCode.BALANCE_LEFT_MONEY, accountException.getErrorCode());
+    }
+
+    @Test
+    void alreadyDeletedAccount() {
+        AccountUser accountUser1 = AccountUser.builder()
+                .name("Hwang")
+                .build();
+        accountUser1.setId(1L);
+
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.of(accountUser1));
+
+        given(accountRepository.findByAccountNumber(anyString()))
+                .willReturn(Optional.of(Account.builder()
+                        .accountUser(accountUser1)
+                        .accountStatus(AccountStatus.UNREGISTERED)
+                        .accountNumber("123456789")
+                .balance(0L)
+                .build()));
+
+        AccountException accountException = assertThrows(AccountException.class
+                , () -> accountService.deleteAccount(1L, "1234566789"));
+
+        assertEquals(ErrorCode.ALREADY_UNREGISTERED, accountException.getErrorCode());
+    }
+
+    @Test
+    void successGetAccountByUserId(){
+        AccountUser Pobi = AccountUser.builder()
+                .name("Pobi")
+                .build();
+        Pobi.setId(1L);
+
+        //given
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.of(Pobi));
+
+        List<Account> accounts = Arrays.asList(
+                Account.builder()
+                        .accountUser(Pobi)
+                        .accountNumber("1111111")
+                        .balance(1000L)
+                        .build(),
+                Account.builder()
+                        .accountUser(Pobi)
+                        .accountNumber("222222")
+                        .balance(2000L)
+                        .build(),
+                Account.builder()
+                        .accountUser(Pobi)
+                        .accountNumber("333333")
+                        .balance(3000L)
+                        .build()
+        );
+
+        given(accountRepository.findByAccountUser(any()))
+                .willReturn(accounts);
+
+        List<AccountDto> accountDtos = accountService.getAccountsByUserId(1L);
+
+        assertEquals(3, accountDtos.size());
+        assertEquals("1111111", accountDtos.get(0).getAccountNumber());
+        assertEquals(1000, accountDtos.get(0).getBalance());
+        assertEquals("222222", accountDtos.get(1).getAccountNumber());
+        assertEquals(2000, accountDtos.get(1).getBalance());
+        assertEquals("333333", accountDtos.get(2).getAccountNumber());
+        assertEquals(3000, accountDtos.get(2).getBalance());
+    }
+
+    @Test
+    void failedToGetAccounts(){
+        given(accountUserRepository.findById(anyLong()))
+                .willReturn(Optional.empty());
+
+        AccountException exception = assertThrows(AccountException.class,
+                () -> accountService.getAccountsByUserId(1L));
+
+        assertEquals(ErrorCode.USER_NOT_FOUND, exception.getErrorCode());
     }
 }
