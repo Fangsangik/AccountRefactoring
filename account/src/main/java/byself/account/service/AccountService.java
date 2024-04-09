@@ -12,5 +12,5 @@ public interface AccountService {
 
     void validation(AccountUser accountUser, Account account);
 
-    void cancelBalance(Account account, Long amount);
+    void cancelBalance(Long amount);
 }

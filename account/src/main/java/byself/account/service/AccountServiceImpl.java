@@ -12,6 +12,7 @@ import byself.account.type.ErrorCode;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,6 +31,7 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private AccountUserRepository accountUserRepository;
 
+    @Transactional
     public AccountDto createAccount(Long id, Long initialBalance) {
         AccountUser accountUser = getAccountUser(id);
 
@@ -58,6 +60,7 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
+    @Transactional
     public AccountDto deleteAccount(Long id, String accountNumber) {
         AccountUser accountUser = getAccountUser(id);
 
@@ -80,16 +83,6 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void useBalance(Account account, Long amount) {
-        if (amount > account.getBalance()) {
-            throw new AccountException(NOT_ENOUGH_MONEY);
-        } else {
-            Long curBalance = account.getBalance();
-            account.setBalance(curBalance - amount);
-        }
-    }
-
-    @Override
     public void validation(AccountUser accountUser, Account account) {
         if (!Objects.equals(accountUser.getId(), account.getAccountUser().getId())){
             throw new AccountException(ID_NOT_MATCH);
@@ -105,7 +98,8 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void cancelBalance(Account account, Long amount) {
+    public void cancelBalance(Long amount) {
+        Account account = new Account();
         if (amount < 0) {
             throw new AccountException(INVALID_REQUEST);
         } else {
@@ -115,6 +109,17 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public void useBalance(Account account, Long amount) {
+        if (amount > account.getBalance()) {
+            throw new AccountException(NOT_ENOUGH_MONEY);
+        } else {
+            Long curBalance = account.getBalance();
+            account.setBalance(curBalance - amount);
+        }
+    }
+
+    @Override
+    @Transactional
     public Account getAccount(Long id) {
         if (id < 0) {
             throw new IllegalStateException(String.format("잘못된 값입니다."));
