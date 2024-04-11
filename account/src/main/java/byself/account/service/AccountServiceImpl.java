@@ -12,6 +12,7 @@ import byself.account.type.ErrorCode;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -23,6 +24,7 @@ import static byself.account.type.AccountStatus.*;
 import static byself.account.type.ErrorCode.*;
 import static byself.account.type.ErrorCode.NOT_ENOUGH_MONEY;
 
+@Service
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 

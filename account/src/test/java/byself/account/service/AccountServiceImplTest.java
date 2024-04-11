@@ -43,27 +43,6 @@ class AccountServiceImplTest {
     private AccountServiceImpl accountService;
 
     @Test
-    void findAccoount() {
-        given(accountRepository.findById(anyLong()))
-                .willReturn(Optional.of(Account.builder()
-                        .accountStatus(AccountStatus.IN_USER)
-                        .accountNumber("123456789")
-                        .build()));
-
-        ArgumentCaptor<Long> captor = ArgumentCaptor.forClass(Long.class);
-
-        Account account = accountService.getAccount(1L);
-
-        verify(accountRepository, times(1))
-                .findById(captor.capture());
-        verify(accountRepository, times(0)).save(any());
-        assertEquals(1L, captor.getValue());
-        // assertEquals(2L, captor.getValue());
-        assertEquals("123456789", account.getAccountNumber());
-
-    }
-
-    @Test
     void createAccount() {
         // given
         AccountUser accountUser = AccountUser.builder()
@@ -199,6 +178,7 @@ class AccountServiceImplTest {
         assertEquals("123456789", captor.getValue().getAccountNumber());
         assertEquals(AccountStatus.UNREGISTERED, captor.getValue().getAccountStatus());
     }
+
 
     @Test
     @DisplayName("해당 유저 X -> 계좌 해지 실패")
@@ -361,5 +341,48 @@ class AccountServiceImplTest {
                 () -> accountService.getAccountsByUserId(1L));
 
         assertEquals(ErrorCode.USER_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    void findAccoount() {
+        given(accountRepository.findById(anyLong()))
+                .willReturn(Optional.of(Account.builder()
+                        .accountStatus(AccountStatus.IN_USER)
+                        .accountNumber("123456789")
+                        .build()));
+
+        ArgumentCaptor<Long> captor = ArgumentCaptor.forClass(Long.class);
+
+        Account account = accountService.getAccount(1L);
+
+        verify(accountRepository, times(1))
+                .findById(captor.capture());
+        verify(accountRepository, times(0)).save(any());
+        assertEquals(1L, captor.getValue());
+        // assertEquals(2L, captor.getValue());
+        assertEquals("123456789", account.getAccountNumber());
+
+    }
+
+    @Test
+    void findAccount_Fail(){
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> accountService.getAccount(-1L));
+
+        assertEquals("잘못된 값입니다.", exception.getMessage());
+    }
+
+    @Test
+    void testSuccess(){
+        given(accountRepository.findById(any()))
+                .willReturn(Optional.of(Account.builder()
+                        .accountStatus(AccountStatus.IN_USER)
+                        .accountNumber("123456789")
+                        .build()));
+
+        Account account = accountService.getAccount(1L);
+
+        assertEquals("123456789", account.getAccountNumber());
+        assertEquals(AccountStatus.IN_USER, account.getAccountStatus());
     }
 }
