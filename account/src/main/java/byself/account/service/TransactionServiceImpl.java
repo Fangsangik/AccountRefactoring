@@ -107,7 +107,7 @@ public class TransactionServiceImpl implements TransactionService{
         Account account = accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new AccountException(ACCOUNT_NOT_FOUND));
 
-        validateCancleBalance(transaction, account, amount);
+        validateCancelBalance(transaction, account, amount);
 
         accountService.cancelBalance(amount);
 
@@ -116,7 +116,7 @@ public class TransactionServiceImpl implements TransactionService{
         );
     }
 
-    private void validateCancleBalance(Transaction transaction,
+    private void validateCancelBalance(Transaction transaction,
                                        Account account,
                                        Long amount){
         if (!Objects.equals(transaction.getAccount().getId(), account.getId())){
