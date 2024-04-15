@@ -14,6 +14,7 @@ import byself.account.type.TransactionType;
 import byself.account.type.TransactionalResultType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,24 +31,32 @@ import static byself.account.type.TransactionalResultType.*;
 @AllArgsConstructor
 public class TransactionServiceImpl implements TransactionService{
 
+    @Autowired
     private final TransactionRepository transactionRepository;
+    @Autowired
     private final AccountUserRepository accountUserRepository;
+    @Autowired
     private final AccountRepository accountRepository;
-
+    @Autowired
     private final AccountServiceImpl accountService;
 
     @Override
     @Transactional
     public TransactionDto useBalance(Long userId, String accountNumber, Long amount) {
-        AccountUser accountUser = accountUserRepository.findById(userId)
-                .orElseThrow(() -> new AccountException(USER_NOT_FOUND));
+        try {
+            AccountUser accountUser = accountUserRepository.findById(userId)
+                    .orElseThrow(() -> new AccountException(USER_NOT_FOUND));
 
-        Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new AccountException(ACCOUNT_NOT_FOUND));
+            Account account = accountRepository.findByAccountNumber(accountNumber)
+                    .orElseThrow(() -> new AccountException(ACCOUNT_NOT_FOUND));
 
-        validateUserBalance(accountUser, account, amount);
+            validateUserBalance(accountUser, account, amount);
 
-        return TransactionDto.fromEntity(saveAndGetTransaction(USE, S, account, amount));
+            return TransactionDto.fromEntity(saveAndGetTransaction(USE, S, account, amount));
+        } catch (AccountException e) {
+            saveFailedUseTransaction(accountNumber, amount);
+            throw e;
+        }
     }
 
     public void validateUserBalance(AccountUser accountUser, Account account, Long amount){
