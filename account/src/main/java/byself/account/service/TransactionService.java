@@ -1,7 +1,9 @@
 package byself.account.service;
 
 import byself.account.dto.TransactionDto;
+import org.springframework.stereotype.Service;
 
+@Service
 public interface TransactionService {
 
     TransactionDto useBalance(Long userId, String accountNumber, Long amount);

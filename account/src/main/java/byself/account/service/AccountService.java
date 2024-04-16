@@ -3,7 +3,9 @@ package byself.account.service;
 import byself.account.domain.Account;
 import byself.account.domain.AccountUser;
 import byself.account.dto.AccountDto;
+import org.springframework.stereotype.Service;
 
+@Service
 public interface AccountService {
 
     Account getAccount(Long id);

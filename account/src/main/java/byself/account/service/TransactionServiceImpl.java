@@ -120,11 +120,11 @@ public class TransactionServiceImpl implements TransactionService{
                                        Account account,
                                        Long amount){
         if (!Objects.equals(transaction.getAccount().getId(), account.getId())){
-            throw new AccountException(ID_NOT_MATCH);
+            throw new AccountException(TRANSACTION_ACCOUNT_UNMATCH);
         }
 
         if (transaction.getAccount() != account){
-            throw new AccountException(ACCOUNT_NOT_FOUND);
+            throw new AccountException(CANCEL_MUST_FULLY);
         }
 
         if (transaction.getTransactedAt().isBefore(LocalDateTime.now())){

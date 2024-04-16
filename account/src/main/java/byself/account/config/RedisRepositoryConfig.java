@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RedisRepositoryConfig {
+
     @Value("${spring.redis.host}")
     private String redisHost;
 
@@ -16,10 +17,9 @@ public class RedisRepositoryConfig {
     private int redisPort;
 
     @Bean
-    public RedissonClient redissonClient(){
+    public RedissonClient redissonClient() {
         Config config = new Config();
-        config.useSingleServer().setAddress("redis//" + redisHost + " : " + redisPort);
-
-        return Redisson.create();
+        config.useSingleServer().setAddress("redis://" + redisHost + ":" + redisPort);
+        return Redisson.create(config); // 수정된 부분: config 객체를 전달합니다.
     }
 }

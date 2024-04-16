@@ -19,6 +19,8 @@ public enum ErrorCode {
     TOO_OLD_TO_CNACEL("오래된 계좌 입니다."),
     TRANSACTION_NOT_FOUND("트랜젝션을 찾지 못했습니다."),
     ACCOUNT_TRANSACTION_LOCK("해당 계좌는 사용중"),
-    INTERNAL_SERVER_ERROR("전반적 Error");
+    INTERNAL_SERVER_ERROR("전반적 Error"),
+    TRANSACTION_ACCOUNT_UNMATCH("찾을수 없는 정보"),
+    CANCEL_MUST_FULLY("무조건 취소가 되야 합니다.");
     private final String descrpition;
 }
