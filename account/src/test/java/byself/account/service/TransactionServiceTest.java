@@ -10,27 +10,35 @@ import byself.account.repository.AccountUserRepository;
 import byself.account.repository.TransactionRepository;
 import byself.account.type.AccountStatus;
 import byself.account.type.ErrorCode;
+<<<<<<< HEAD
 import byself.account.type.TransactionType;
 import byself.account.type.TransactionalResultType;
 import org.junit.jupiter.api.Assertions;
+=======
+>>>>>>> 4be8550e09fba9a44d1554aba02a6224d40c6648
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+<<<<<<< HEAD
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+=======
+>>>>>>> 4be8550e09fba9a44d1554aba02a6224d40c6648
 
+import javax.swing.text.html.Option;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static byself.account.type.TransactionType.*;
-import static byself.account.type.TransactionalResultType.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static byself.account.type.TransactionType.USE;
+import static byself.account.type.TransactionalResultType.F;
+import static byself.account.type.TransactionalResultType.S;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -253,6 +261,7 @@ public class TransactionServiceTest {
         assertEquals(10000L, captor.getValue().getBalanceSnapShot());
         assertEquals(F, captor.getValue().getTransactionalResultType());
     }
+<<<<<<< HEAD
 
     @Test
     void successCancelBalance(){
@@ -463,3 +472,7 @@ public class TransactionServiceTest {
         assertEquals(ErrorCode.TRANSACTION_NOT_FOUND, exception.getErrorCode());
     }
 }
+=======
+}
+
+>>>>>>> 4be8550e09fba9a44d1554aba02a6224d40c6648

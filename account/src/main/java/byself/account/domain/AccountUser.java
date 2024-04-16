@@ -17,9 +17,6 @@ import java.util.List;
 public class AccountUser extends BaseEntity{
     private String name;
 
-    @OneToMany(mappedBy = "accountUser")
-    List<Account> accounts = new ArrayList<>();
-
     public AccountUser(){
 
     }
