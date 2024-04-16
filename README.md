@@ -6,7 +6,7 @@
     SpringBoot 
     H2 DB
     JPA
-    Embedded redis
+    Embedded redis (아직 공부가 필요함) 
 
 구현 예정 기능 
 
